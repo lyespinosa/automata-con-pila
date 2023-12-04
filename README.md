@@ -1,3 +1,8 @@
+# Enlace al video del automata
+
+https://drive.google.com/file/d/18rOzeCmcNO7baqX-hAqb-JboN7Y9dppx/view?usp=drivesdk
+
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
