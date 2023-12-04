@@ -1,50 +1,52 @@
-import './App.css'
+import React, { useState } from "react";
+import "./index.css";
 import CodeMirror from "@uiw/react-codemirror";
 import { vscodeDark } from "@uiw/codemirror-theme-vscode";
-import { useState } from 'react';
-import GramaticaChomsky from './gramatica-chosmky';
+import validateAutomaton from "./gramatica-chosmky";
 
-function App() {
-
-  const gramatica = new GramaticaChomsky();
-
+const CodeValidator = () => {
   const [code, setCode] = useState("");
-  const [errors, setErrors] = useState({});
-  const [isValid, setIsValid] = useState(true);
-  
-  const handleCodeChange = (code) => {
-    const newCode = code;
-    setCode(newCode);
-    console.log(newCode)
-  };
+  const [stacks, setStacks] = useState([]);
+  const [isValid, setIsValid] = useState(undefined);
+
+  const submitInputString = () => {
+    const result = validateAutomaton(code);
+    setStacks(result.stack)
+    setIsValid(result.isValid);
+  }
 
   return (
     <div className="content">
       <h3 className="errorsLog" >Verificador de sintaxis</h3>
       <CodeMirror
         value={code}
-        height="400px"
+        height="300px"
 
         theme={vscodeDark}
-        onChange={(editor) => {
-          handleCodeChange(editor);
-          console.log(code)
+        onChange={(editor,) => {
+          setCode(editor);
         }}
       />
 
-      <div style={{ marginLeft: "20px" }}>
-        {Object.keys(errors).length > 0 ? (
-          <ul className="errorsLog">
-            {Object.values(errors).map((error, index) => (
-              <li key={index}>{error}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="errorsLog">El código es válido.</p>
-        )}
-      </div>
-    </div>
-  )
-}
+      <button onClick={submitInputString} className="buttonSubmit">Aceptar</button>
 
-export default App
+      <h2 className="pilaTitle">Estados de la pila ↓ {
+        isValid === undefined ? null :  isValid ? <span className="message correct">Cadena válida</span> : <span className="message failed">Error en sintaxis</span>
+      }</h2>
+      <div className="stacksContainer">
+        {stacks.map((stack, index) => (
+          <div className="stack" key={index}>
+            {/* Renderizar cada elemento del array en un div */}
+            {stack.map((element, elementIndex) => (
+              <div className="element" key={elementIndex}>{element}</div>
+            ))}
+          </div>
+        ))}
+      </div>
+      
+
+    </div>
+  );
+};
+
+export default CodeValidator;

@@ -1,15 +1,16 @@
 class ValidateFNC {
     constructor() {
         this.stack = ['$'];
+        this.states = []
     }
 
-    pushToStack(symbols) {
+    add(symbols) {
         for (let i = symbols.length - 1; i >= 0; i--) {
             this.stack.push(symbols[i]);
         }
     }
 
-    popFromStack() {
+    remove() {
         return this.stack.pop();
     }
 
@@ -23,17 +24,17 @@ class ValidateFNC {
 
     validate(input) {
 
-        this.pushToStack(['S']);
+        this.add(['S']);
         let pointer = 0;
 
         while (true) {
             console.log(this.stack);
+            this.states.push([...this.stack]);
             const stackTop = this.topOfStack();
             const inputSymbol = input[pointer];
 
             if (stackTop === '$' && inputSymbol === undefined) {
-                console.log('Cadena aceptada');
-                break;
+                return {isValid: true, stack: this.states};
             }
 
             if (stackTop.length > 1 && this.isTerminal(stackTop)) {
@@ -42,20 +43,19 @@ class ValidateFNC {
                     } else {
                         break;
                     }
-                    this.popFromStack();
+                    this.remove();
                     pointer += stackTop.length;
                 }
             } else if (stackTop === inputSymbol) {
-                this.popFromStack();
+                this.remove();
                 pointer++;
             } else {
                 const production = this.getProduction(stackTop, inputSymbol);
                 if (production) {
-                    this.popFromStack();
-                    this.pushToStack(production);
+                    this.remove();
+                    this.add(production);
                 } else {
-                    console.log('Error');
-                    break;
+                    return {isValid: false, stack: this.states};
                 }
             }
         }
@@ -71,8 +71,8 @@ class ValidateFNC {
                     's': () => ['V2', 'L1'],
                     't': () => ['T40', 'L2'],
                     'r': () => ['R34', 'L3'],
-                    'h': () => ['H', 'P4'],
-                    'P': () => ['Q1', 'W'],
+                    'c': () => ['H', 'P4'],
+                    'p': () => ['Q1', 'W'],
                 };
                 return mappings[terminal] ? mappings[terminal]() : null;
             },
@@ -109,9 +109,13 @@ class ValidateFNC {
             'R': () => ['N', 'F'],
             'F': () => ['P2', 'B'],
             'T2': () => ['T1', 'B'],
-            'P4': () => ['P1', 'P5'],
-            'P5': () => ['O', 'P6'],
+            'P4': () => ['P1', 'P8'],
+            'P5': () => ['O', 'P9'],
             'P6': () => ['P2', 'T2'],
+            'P7': () => ['P2', 'B'],
+            'P8': () => ['N', 'P5'],
+            'P9': () => ['X', 'P6'],
+            'W': () => ['P1', 'P7'],
             'I': () => /[a-z]/.test(terminal) ? [terminal] : null,
             'M': () => /[A-Z]/.test(terminal) ? [terminal] : null,
             'Z': () => /[0-9]/.test(terminal) ? [terminal] : null,
@@ -120,7 +124,7 @@ class ValidateFNC {
             'C1': () => ['"'],
             'E': () => ['= '],
             'T40': () => ['task '],
-            'P1': () => ['('],
+            'P1': () => ['( '],
             'P2': () => [')'],
             'B1': () => ['{ '],
             'B2': () => [' }'],
@@ -129,10 +133,10 @@ class ValidateFNC {
             'R34': () => ['repetir '],
             'R2': () => ['in range '],
             'D': () => ['.'],
-            'H': () => [' CIf '],
+            'H': () => ['condition '],
             'T1': () => [' then '],
-            'O': () => [' == '],
-            'Q1': () => ['Principal Task'],
+            'O': () => ['== ' ],
+            'Q1': () => ['principal task '],
         }
         return ruleMappings[nonTerminal] ? ruleMappings[nonTerminal]() : null;
     }
@@ -140,13 +144,18 @@ class ValidateFNC {
 
 }
 
-const automaton = new ValidateFNC();
+export default function validateAutomaton(inputString){
+    const automaton = new ValidateFNC();
+    const result = automaton.validate(inputString);
+    return result;
+}
+/*
 let inputString1 = 'int iGI = 000 ';
 let inputString = 'string hola = "vamos "';
-let inputString2 = 'task eyyy (int i ){ contenido }';
+let inputString2 = 'task eyyy ( int i ){ contenido }';
 let inputString3 = 'repetir i in range 0...9{ contenido }';
+let inputString4 = 'principal task ( ){ contenido }';
+let inputString5 = 'condition (edad == 18 ) then { contenido }';
+*/
 
 
-
-
-automaton.validate(inputString2);
